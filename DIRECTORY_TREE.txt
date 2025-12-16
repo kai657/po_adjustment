@@ -1,0 +1,50 @@
+工单调整工具/
+├── run.py                              # 主程序入口
+├── README.md                           # 项目说明
+├── STRUCTURE.md                        # 目录结构说明
+├── requirements.txt                    # Python依赖
+├── .gitignore                          # Git忽略配置
+│
+├── src/                                # 源代码
+│   ├── __init__.py
+│   ├── core/                           # 核心算法
+│   │   ├── __init__.py
+│   │   ├── po_optimization.py          # 优化算法
+│   │   └── visualization.py            # 可视化
+│   └── web/                            # Web应用
+│       ├── __init__.py
+│       ├── app.py                      # Flask应用
+│       ├── templates/                  # HTML模板
+│       │   └── index.html
+│       └── static/                     # 静态资源
+│           ├── css/
+│           │   └── style.css
+│           └── js/
+│               └── app.js
+│
+├── data/                               # 数据目录
+│   ├── input/                          # 输入文件
+│   │   ├── shechle_aim.xlsx
+│   │   └── po_lists.xlsx
+│   ├── output/                         # 输出结果
+│   │   ├── po_lists_optimized.xlsx
+│   │   ├── comparison_report.xlsx
+│   │   ├── po_comparison.png
+│   │   └── deviation_comparison.png
+│   └── uploads/                        # 上传临时
+│       └── .gitkeep
+│
+├── scripts/                            # 脚本工具
+│   ├── start_web.sh                    # Web启动脚本
+│   └── run_optimization.py             # CLI脚本
+│
+├── docs/                               # 文档
+│   ├── README.md                       # 完整文档
+│   ├── QUICKSTART.md                   # 快速开始
+│   ├── WEB_GUIDE.md                    # Web指南
+│   ├── PROJECT_OVERVIEW.md             # 项目总览
+│   ├── DEMO.md                         # 演示指南
+│   └── FILE_LIST.txt                   # 文件清单
+│
+└── tests/                              # 测试（预留）
+    └── .gitkeep

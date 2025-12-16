@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PO清单分箱优化系统</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎯 PO清单分箱优化系统</h1>
+            <p class="subtitle">基于排程目标智能调整要货日期，最小化每周数量偏差</p>
+        </header>
+
+        <!-- 步骤指示器 -->
+        <div class="steps">
+            <div class="step active" data-step="1">
+                <div class="step-number">1</div>
+                <div class="step-title">上传文件</div>
+            </div>
+            <div class="step" data-step="2">
+                <div class="step-number">2</div>
+                <div class="step-title">参数设置</div>
+            </div>
+            <div class="step" data-step="3">
+                <div class="step-number">3</div>
+                <div class="step-title">执行优化</div>
+            </div>
+            <div class="step" data-step="4">
+                <div class="step-number">4</div>
+                <div class="step-title">查看结果</div>
+            </div>
+        </div>
+
+        <!-- 主内容区 -->
+        <div class="content">
+            <!-- 步骤1: 文件上传 -->
+            <section id="step-upload" class="step-content active">
+                <h2>📂 步骤1: 上传文件</h2>
+
+                <div class="upload-section">
+                    <div class="upload-box">
+                        <h3>排程目标文件</h3>
+                        <p class="file-desc">包含每周SKU计划产量目标</p>
+                        <input type="file" id="schedule-file" accept=".xlsx,.xls" style="display: none;">
+                        <button class="btn btn-upload" onclick="document.getElementById('schedule-file').click()">
+                            选择文件
+                        </button>
+                        <div class="file-info" id="schedule-info"></div>
+                        <div class="file-preview" id="schedule-preview"></div>
+                    </div>
+
+                    <div class="upload-box">
+                        <h3>PO清单文件</h3>
+                        <p class="file-desc">需要调整的PO订单清单</p>
+                        <input type="file" id="po-file" accept=".xlsx,.xls" style="display: none;">
+                        <button class="btn btn-upload" onclick="document.getElementById('po-file').click()">
+                            选择文件
+                        </button>
+                        <div class="file-info" id="po-info"></div>
+                        <div class="file-preview" id="po-preview"></div>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-primary" id="btn-upload" disabled>上传并预览</button>
+                </div>
+            </section>
+
+            <!-- 步骤2: 参数设置 -->
+            <section id="step-params" class="step-content">
+                <h2>⚙️ 步骤2: 优化参数设置</h2>
+
+                <div class="params-section">
+                    <div class="param-group">
+                        <label for="priority-weeks">
+                            <span class="param-name">优先保障周数</span>
+                            <span class="param-desc">前N周的偏差最小化优先级更高（建议8周=2个月）</span>
+                        </label>
+                        <div class="param-input">
+                            <input type="number" id="priority-weeks" value="8" min="1" max="52">
+                            <span class="unit">周</span>
+                        </div>
+                    </div>
+
+                    <div class="param-group">
+                        <label for="priority-weight">
+                            <span class="param-name">优先周权重</span>
+                            <span class="param-desc">前N周偏差的权重倍数（值越大，前N周越准确）</span>
+                        </label>
+                        <div class="param-input">
+                            <input type="number" id="priority-weight" value="10" min="1" max="100" step="0.1">
+                            <span class="unit">倍</span>
+                        </div>
+                    </div>
+
+                    <div class="param-group">
+                        <label for="date-weight">
+                            <span class="param-name">日期接近度权重</span>
+                            <span class="param-desc">调整后日期与原日期接近程度的权重（建议0.01-0.1）</span>
+                        </label>
+                        <div class="param-input">
+                            <input type="number" id="date-weight" value="0.01" min="0" max="1" step="0.01">
+                            <span class="unit"></span>
+                        </div>
+                    </div>
+
+                    <div class="param-group">
+                        <label for="max-workers">
+                            <span class="param-name">并行进程数</span>
+                            <span class="param-desc">同时处理的SKU数量（建议2-8，取决于CPU核心数）</span>
+                        </label>
+                        <div class="param-input">
+                            <input type="number" id="max-workers" value="4" min="1" max="16">
+                            <span class="unit">个</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="constraint-info">
+                    <h3>📋 优化约束条件</h3>
+                    <ul>
+                        <li>✓ 要货日期范围: 2025-10-01 至 2026-06-01</li>
+                        <li>✓ 要货日期必须为周一</li>
+                        <li>✓ 自动排除中国法定节假日</li>
+                        <li>✓ 每个SKU独立优化，互不影响</li>
+                    </ul>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" onclick="goToStep(1)">返回上传</button>
+                    <button class="btn btn-primary" onclick="goToStep(3)">下一步</button>
+                </div>
+            </section>
+
+            <!-- 步骤3: 执行优化 -->
+            <section id="step-optimize" class="step-content">
+                <h2>🚀 步骤3: 执行优化</h2>
+
+                <div class="optimize-panel">
+                    <div class="param-summary">
+                        <h3>参数配置确认</h3>
+                        <table class="summary-table">
+                            <tr>
+                                <td>优先保障周数:</td>
+                                <td><strong id="summary-weeks">8</strong> 周</td>
+                            </tr>
+                            <tr>
+                                <td>优先周权重:</td>
+                                <td><strong id="summary-weight">10</strong> 倍</td>
+                            </tr>
+                            <tr>
+                                <td>日期接近度权重:</td>
+                                <td><strong id="summary-date-weight">0.01</strong></td>
+                            </tr>
+                            <tr>
+                                <td>并行进程数:</td>
+                                <td><strong id="summary-workers">4</strong> 个</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="progress-panel" id="progress-panel" style="display: none;">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progress-fill"></div>
+                        </div>
+                        <p class="progress-text" id="progress-text">正在优化中...</p>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" onclick="goToStep(2)">返回参数</button>
+                    <button class="btn btn-success" id="btn-optimize" onclick="startOptimization()">
+                        开始优化
+                    </button>
+                </div>
+            </section>
+
+            <!-- 步骤4: 结果展示 -->
+            <section id="step-results" class="step-content">
+                <h2>📊 步骤4: 优化结果</h2>
+
+                <div class="results-panel" id="results-panel">
+                    <!-- 汇总统计 -->
+                    <div class="summary-stats" id="summary-stats"></div>
+
+                    <!-- 图表展示 -->
+                    <div class="charts-section">
+                        <div class="chart-box">
+                            <h3>每周数量对比图</h3>
+                            <img id="comparison-chart" src="" alt="加载中...">
+                        </div>
+                        <div class="chart-box">
+                            <h3>偏差改善对比图</h3>
+                            <img id="deviation-chart" src="" alt="加载中...">
+                        </div>
+                    </div>
+
+                    <!-- 下载区域 -->
+                    <div class="download-section">
+                        <h3>📥 下载结果文件</h3>
+                        <div class="download-buttons" id="download-buttons"></div>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" onclick="location.reload()">重新开始</button>
+                </div>
+            </section>
+        </div>
+
+        <!-- 消息提示 -->
+        <div id="toast" class="toast"></div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
