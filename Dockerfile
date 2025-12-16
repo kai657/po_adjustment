@@ -5,20 +5,17 @@ FROM python:3.11-slim
 WORKDIR /app
 
 # 设置环境变量
-ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    PORT=5001
+ENV PYTHONUNBUFFERED=1
 
 # 安装系统依赖
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     && rm -rf /var/lib/apt/lists/*
 
-# 复制依赖文件
+# 复制依赖文件并安装
 COPY requirements.txt .
-
-# 安装Python依赖
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir gunicorn
 
 # 复制项目文件
 COPY . .
@@ -29,9 +26,5 @@ RUN mkdir -p data/output data/uploads
 # 暴露端口
 EXPOSE 5001
 
-# 健康检查
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:5001')" || exit 1
-
-# 启动命令
-CMD ["python", "run.py", "web", "--host", "0.0.0.0", "--port", "5001", "--no-debug"]
+# 使用 gunicorn 启动
+CMD ["gunicorn", "--bind", "0.0.0.0:5001", "--workers", "2", "--timeout", "120", "src.web.app:app"]

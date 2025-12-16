@@ -1,0 +1,31 @@
+# Launch 平台部署配置
+name: po_adjustment
+type: web
+
+# 运行配置
+runtime:
+  language: python
+  version: "3.11"
+
+# 服务配置
+service:
+  port: 5001
+  protocol: http
+
+# 启动命令（可选，Dockerfile 已配置）
+# start_command: gunicorn --bind 0.0.0.0:5001 --workers 2 src.web.app:app
+
+# 健康检查
+health_check:
+  path: /
+  interval: 30
+  timeout: 10
+
+# 环境变量
+environment:
+  PYTHONUNBUFFERED: "1"
+
+# 资源配置
+resources:
+  cpu: 1
+  memory: 512
