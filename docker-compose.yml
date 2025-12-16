@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: po_adjustment
+    ports:
+      - "5001:5001"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PORT=5001
+      - HOST=0.0.0.0
+      - WORKERS=2
+    volumes:
+      - ./data/output:/app/data/output
+      - ./data/uploads:/app/data/uploads
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s

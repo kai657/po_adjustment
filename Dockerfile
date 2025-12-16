@@ -26,5 +26,9 @@ RUN mkdir -p data/output data/uploads
 # 暴露端口
 EXPOSE 5001
 
-# 使用 gunicorn 启动
-CMD ["gunicorn", "--bind", "0.0.0.0:5001", "--workers", "2", "--timeout", "120", "src.web.app:app"]
+# 启动脚本
+COPY start.sh .
+RUN chmod +x start.sh
+
+# 使用启动脚本
+CMD ["./start.sh"]
