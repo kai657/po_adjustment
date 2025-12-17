@@ -789,7 +789,6 @@ h2 {
 }
 
 .chart-box img:hover {
-    transform: scale(1.02);
     box-shadow: var(--shadow-xl);
 }
 
