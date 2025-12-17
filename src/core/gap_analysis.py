@@ -59,51 +59,72 @@ class GapAnalyzer:
 
     def create_gap_table(self):
         """
-        创建差异汇总表
+        创建差异汇总表（按周维度）
 
         Returns:
-            DataFrame: SKU×日期的差异表
+            DataFrame: SKU×周次的差异表
             dict: 包含各部分数据的字典
         """
-        # 1. 准备排程目标数据（按SKU+日期）
-        schedule_pivot = self.schedule_df.pivot_table(
+        # 1. 为排程目标和PO数据添加week_num（如果不存在）
+        schedule_df = self.schedule_df.copy()
+        if 'week_num' not in schedule_df.columns:
+            schedule_df['week_num'] = schedule_df['日期'].apply(
+                lambda x: x.isocalendar()[0] * 100 + x.isocalendar()[1]
+            )
+
+        # 2. 按SKU+week_num汇总排程目标
+        schedule_weekly = schedule_df.groupby(['SKU', 'week_num'])['计划产量'].sum().reset_index()
+        schedule_pivot = schedule_weekly.pivot_table(
             index='SKU',
-            columns='日期',
+            columns='week_num',
             values='计划产量',
             fill_value=0
         )
 
-        # 2. 汇总优化后的PO数据
-        po_agg = self.aggregate_po_by_date(self.po_optimized_df)
+        # 3. 按SKU+week_num汇总PO数据
+        po_optimized_df = self.po_optimized_df.copy()
+        if 'week_num' not in po_optimized_df.columns:
+            po_optimized_df['日期'] = pd.to_datetime(po_optimized_df['修改要货日期'])
+            po_optimized_df['week_num'] = po_optimized_df['日期'].apply(
+                lambda x: x.isocalendar()[0] * 100 + x.isocalendar()[1]
+            )
 
-        # 转换为透视表
-        po_pivot = po_agg.pivot_table(
+        po_weekly = po_optimized_df.groupby(['SKU', 'week_num'])['数量'].sum().reset_index()
+        po_pivot = po_weekly.pivot_table(
             index='SKU',
-            columns='日期',
-            values='PO数量',
+            columns='week_num',
+            values='数量',
             fill_value=0
         )
 
-        # 3. 确保两个表有相同的日期列
-        all_dates = sorted(set(schedule_pivot.columns) | set(po_pivot.columns))
+        # 4. 确保两个表有相同的周次列
+        all_weeks = sorted(set(schedule_pivot.columns) | set(po_pivot.columns))
 
         # 重建两个表，确保列一致
-        schedule_aligned = schedule_pivot.reindex(columns=all_dates, fill_value=0)
-        po_aligned = po_pivot.reindex(columns=all_dates, fill_value=0)
+        schedule_aligned = schedule_pivot.reindex(columns=all_weeks, fill_value=0)
+        po_aligned = po_pivot.reindex(columns=all_weeks, fill_value=0)
 
         # 确保两个表有相同的SKU
         all_skus = sorted(set(schedule_aligned.index) | set(po_aligned.index))
         schedule_aligned = schedule_aligned.reindex(index=all_skus, fill_value=0)
         po_aligned = po_aligned.reindex(index=all_skus, fill_value=0)
 
-        # 4. 计算差异 (排程目标 - PO汇总)
+        # 5. 计算差异 (排程目标 - PO汇总)
         gap = schedule_aligned - po_aligned
+
+        # 6. 生成周次标签（格式：2025W50）
+        week_labels = []
+        for week_num in all_weeks:
+            year = int(week_num // 100)
+            week = int(week_num % 100)
+            week_labels.append(f"{year}W{week:02d}")
 
         return {
             'gap': gap,
             'schedule': schedule_aligned,
             'po': po_aligned,
-            'dates': all_dates
+            'weeks': all_weeks,
+            'week_labels': week_labels
         }
 
     def calculate_top_gaps(self, gap_df, percentile=70):
@@ -133,18 +154,19 @@ class GapAnalyzer:
 
     def export_to_excel(self, output_path, highlight_top_percent=30):
         """
-        导出差异表到Excel，并高亮显示top N%的差异
+        导出差异表到Excel（按周维度），并高亮显示top N%的差异
 
         Args:
             output_path: 输出文件路径
             highlight_top_percent: 高亮百分比（默认30%）
         """
-        # 生成差异数据
+        # 生成差异数据（按周）
         data = self.create_gap_table()
         gap_df = data['gap']
         schedule_df = data['schedule']
         po_df = data['po']
-        dates = data['dates']
+        weeks = data['weeks']
+        week_labels = data['week_labels']
 
         # 计算高亮阈值
         threshold = self.calculate_top_gaps(gap_df, 100 - highlight_top_percent)
@@ -189,7 +211,7 @@ class GapAnalyzer:
         ws.cell(row=1, column=current_col).fill = header_fill
         ws.cell(row=1, column=current_col).font = header_font
         ws.cell(row=1, column=current_col).alignment = Alignment(horizontal='center', vertical='center')
-        current_col += len(dates)
+        current_col += len(weeks)
 
         # 排程目标部分
         schedule_start_col = current_col
@@ -197,7 +219,7 @@ class GapAnalyzer:
         ws.cell(row=1, column=current_col).fill = header_fill
         ws.cell(row=1, column=current_col).font = header_font
         ws.cell(row=1, column=current_col).alignment = Alignment(horizontal='center', vertical='center')
-        current_col += len(dates)
+        current_col += len(weeks)
 
         # PO汇总结果部分
         po_start_col = current_col
@@ -208,29 +230,28 @@ class GapAnalyzer:
 
         # 合并分类标题单元格
         ws.merge_cells(start_row=1, start_column=gap_start_col,
-                      end_row=1, end_column=gap_start_col + len(dates) - 1)
+                      end_row=1, end_column=gap_start_col + len(weeks) - 1)
         ws.merge_cells(start_row=1, start_column=schedule_start_col,
-                      end_row=1, end_column=schedule_start_col + len(dates) - 1)
+                      end_row=1, end_column=schedule_start_col + len(weeks) - 1)
         ws.merge_cells(start_row=1, start_column=po_start_col,
-                      end_row=1, end_column=po_start_col + len(dates) - 1)
+                      end_row=1, end_column=po_start_col + len(weeks) - 1)
 
-        # 2. 写入第二行日期标题
+        # 2. 写入第二行周次标题
         ws.cell(row=2, column=1, value="SKU")
         ws.cell(row=2, column=1).fill = subheader_fill
         ws.cell(row=2, column=1).font = subheader_font
         ws.cell(row=2, column=1).alignment = Alignment(horizontal='center', vertical='center')
 
-        # 写入3遍日期（GAP、排程、PO）
+        # 写入3遍周次标签（GAP、排程、PO）
         for part_idx in range(3):
             start_col = [gap_start_col, schedule_start_col, po_start_col][part_idx]
-            for date_idx, date in enumerate(dates):
-                col = start_col + date_idx
-                date_str = date.strftime('%Y-%m-%d') if isinstance(date, datetime) else str(date)
-                ws.cell(row=2, column=col, value=date_str)
+            for week_idx, week_label in enumerate(week_labels):
+                col = start_col + week_idx
+                ws.cell(row=2, column=col, value=week_label)
                 ws.cell(row=2, column=col).fill = subheader_fill
                 ws.cell(row=2, column=col).font = subheader_font
                 ws.cell(row=2, column=col).alignment = Alignment(horizontal='center', vertical='center', text_rotation=45)
-                ws.column_dimensions[ws.cell(row=2, column=col).column_letter].width = 12
+                ws.column_dimensions[ws.cell(row=2, column=col).column_letter].width = 10
 
         # 3. 写入数据行
         for sku_idx, sku in enumerate(gap_df.index):
@@ -242,9 +263,9 @@ class GapAnalyzer:
             ws.cell(row=row, column=1).border = normal_border
 
             # GAP差异数据
-            for date_idx, date in enumerate(dates):
-                col = gap_start_col + date_idx
-                value = gap_df.loc[sku, date]
+            for week_idx, week_num in enumerate(weeks):
+                col = gap_start_col + week_idx
+                value = gap_df.loc[sku, week_num]
                 cell = ws.cell(row=row, column=col, value=float(value))
                 cell.alignment = Alignment(horizontal='right', vertical='center')
                 cell.border = normal_border
@@ -255,17 +276,17 @@ class GapAnalyzer:
                     cell.font = Font(bold=True)
 
             # 排程目标数据
-            for date_idx, date in enumerate(dates):
-                col = schedule_start_col + date_idx
-                value = schedule_df.loc[sku, date]
+            for week_idx, week_num in enumerate(weeks):
+                col = schedule_start_col + week_idx
+                value = schedule_df.loc[sku, week_num]
                 cell = ws.cell(row=row, column=col, value=float(value))
                 cell.alignment = Alignment(horizontal='right', vertical='center')
                 cell.border = normal_border
 
             # PO汇总结果数据
-            for date_idx, date in enumerate(dates):
-                col = po_start_col + date_idx
-                value = po_df.loc[sku, date]
+            for week_idx, week_num in enumerate(weeks):
+                col = po_start_col + week_idx
+                value = po_df.loc[sku, week_num]
                 cell = ws.cell(row=row, column=col, value=float(value))
                 cell.alignment = Alignment(horizontal='right', vertical='center')
                 cell.border = normal_border
@@ -309,7 +330,7 @@ class GapAnalyzer:
             'positive_gaps': float(positive_gaps),
             'negative_gaps': float(negative_gaps),
             'sku_count': len(gap_df),
-            'date_count': len(gap_df.columns)
+            'week_count': len(gap_df.columns)  # 改为周数统计
         }
 
 

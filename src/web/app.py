@@ -220,11 +220,10 @@ def optimize():
         gap_stats = gap_analyzer.generate_summary_stats()
         gap_data = gap_analyzer.create_gap_table()
 
-        # 转换gap数据为JSON格式
+        # 转换gap数据为JSON格式（按周维度）
         gap_json = {
             'skus': gap_data['gap'].index.tolist(),
-            'dates': [d.strftime('%Y-%m-%d') if hasattr(d, 'strftime') else str(d)
-                     for d in gap_data['dates']],
+            'weeks': gap_data['week_labels'],  # 使用周次标签（如 2025W50）
             'gap_values': gap_data['gap'].values.tolist(),
             'schedule_values': gap_data['schedule'].values.tolist(),
             'po_values': gap_data['po'].values.tolist(),
