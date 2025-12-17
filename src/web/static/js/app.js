@@ -289,6 +289,23 @@ function goToStep(step) {
         }
     });
 
+    // 步骤1特殊处理：检查是否已经上传过文件
+    if (step === 1) {
+        const uploadBtn = document.getElementById('btn-upload');
+        const nextBtn = document.getElementById('btn-next-step');
+        const schedulePreview = document.getElementById('schedule-preview');
+        const poPreview = document.getElementById('po-preview');
+
+        // 如果已经有预览数据（说明文件已上传），显示"下一步"按钮
+        if (schedulePreview.innerHTML && poPreview.innerHTML) {
+            uploadBtn.style.display = 'none';
+            nextBtn.style.display = 'inline-block';
+        } else {
+            uploadBtn.style.display = 'inline-block';
+            nextBtn.style.display = 'none';
+        }
+    }
+
     // 更新参数摘要
     if (step === 3) {
         updateParamSummary();
@@ -566,7 +583,7 @@ function displayGapAnalysis(gapData) {
         // GAP差异列
         for (let j = 0; j < dates.length; j++) {
             const value = gapValues[i][j];
-            let className = value > 0 ? 'positive' : (value < 0 ? 'negative' : 'zero');
+            let className = 'gap-column ' + (value > 0 ? 'positive' : (value < 0 ? 'negative' : 'zero'));
 
             // 高亮top30%
             if (Math.abs(value) >= threshold && Math.abs(value) > 0) {
@@ -579,13 +596,13 @@ function displayGapAnalysis(gapData) {
         // 排程目标列
         for (let j = 0; j < dates.length; j++) {
             const value = scheduleValues[i][j];
-            tableHTML += `<td>${value.toLocaleString()}</td>`;
+            tableHTML += `<td class="schedule-column">${value.toLocaleString()}</td>`;
         }
 
         // PO汇总结果列
         for (let j = 0; j < dates.length; j++) {
             const value = poValues[i][j];
-            tableHTML += `<td>${value.toLocaleString()}</td>`;
+            tableHTML += `<td class="po-column">${value.toLocaleString()}</td>`;
         }
 
         tableHTML += '</tr>';
