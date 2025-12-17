@@ -193,8 +193,9 @@ def optimize():
 
         optimizer._calculate_weekly_deviation = patched_calc
 
-        # 执行优化
-        optimized_po = optimizer.optimize(max_workers=max_workers)
+        # 执行优化（注意：在Flask环境中强制使用单进程模式以避免多进程兼容性问题）
+        # 多进程模式在macOS + Python 3.13 + Flask环境中存在兼容性问题
+        optimized_po = optimizer.optimize(max_workers=1)
 
         # 保存结果
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')

@@ -254,8 +254,14 @@ class POOptimizer:
         if max_workers == 1 or len(sku_groups) == 1:
             # 单进程处理（方便调试）
             for sku_data in sku_groups:
-                result = self._optimize_sku(sku_data)
-                optimized_results.append(result)
+                try:
+                    result = self._optimize_sku(sku_data)
+                    optimized_results.append(result)
+                except Exception as e:
+                    sku = sku_data[0]
+                    print(f"错误: SKU {sku} 优化失败: {str(e)}")
+                    import traceback
+                    traceback.print_exc()
         else:
             # 多进程并行处理
             with ProcessPoolExecutor(max_workers=max_workers) as executor:
@@ -269,6 +275,12 @@ class POOptimizer:
                     except Exception as e:
                         sku = futures[future]
                         print(f"错误: SKU {sku} 优化失败: {str(e)}")
+                        import traceback
+                        traceback.print_exc()
+
+        # 检查是否有成功的结果
+        if len(optimized_results) == 0:
+            raise ValueError(f"所有{len(sku_groups)}个SKU的优化都失败了，无法生成结果。请检查数据格式和日志输出。")
 
         # 合并所有结果
         final_po_lists = pd.concat(optimized_results, ignore_index=True)
