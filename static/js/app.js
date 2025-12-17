@@ -566,7 +566,7 @@ function displayGapAnalysis(gapData) {
         // GAP差异列
         for (let j = 0; j < dates.length; j++) {
             const value = gapValues[i][j];
-            let className = value > 0 ? 'positive' : (value < 0 ? 'negative' : 'zero');
+            let className = 'gap-column ' + (value > 0 ? 'positive' : (value < 0 ? 'negative' : 'zero'));
 
             // 高亮top30%
             if (Math.abs(value) >= threshold && Math.abs(value) > 0) {
@@ -579,13 +579,13 @@ function displayGapAnalysis(gapData) {
         // 排程目标列
         for (let j = 0; j < dates.length; j++) {
             const value = scheduleValues[i][j];
-            tableHTML += `<td>${value.toLocaleString()}</td>`;
+            tableHTML += `<td class="schedule-column">${value.toLocaleString()}</td>`;
         }
 
         // PO汇总结果列
         for (let j = 0; j < dates.length; j++) {
             const value = poValues[i][j];
-            tableHTML += `<td>${value.toLocaleString()}</td>`;
+            tableHTML += `<td class="po-column">${value.toLocaleString()}</td>`;
         }
 
         tableHTML += '</tr>';

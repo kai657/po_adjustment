@@ -953,8 +953,22 @@ h2 {
     border-right: 2px solid var(--border-color);
 }
 
+/* 三个区域的背景色 */
+.gap-table td.gap-column {
+    background: #fff5f5;  /* 浅红色 - GAP差异区域 */
+}
+
+.gap-table td.schedule-column {
+    background: #f0f9ff;  /* 浅蓝色 - 排程目标区域 */
+}
+
+.gap-table td.po-column {
+    background: #f0fdf4;  /* 浅绿色 - PO汇总结果区域 */
+}
+
+/* 高亮样式优先级最高 */
 .gap-table td.highlight {
-    background: #FFC7CE;
+    background: #FFC7CE !important;
     font-weight: bold;
     color: #c92a2a;
 }
@@ -971,16 +985,24 @@ h2 {
     color: var(--text-secondary);
 }
 
-.gap-table tr:hover td {
-    background: #f8f9ff;
-}
-
 .gap-table tr:hover td.sku-cell {
     background: #e7f5ff;
 }
 
+.gap-table tr:hover td.gap-column {
+    background: #ffe5e5;  /* 深一点的浅红色 */
+}
+
+.gap-table tr:hover td.schedule-column {
+    background: #e0f2fe;  /* 深一点的浅蓝色 */
+}
+
+.gap-table tr:hover td.po-column {
+    background: #dcfce7;  /* 深一点的浅绿色 */
+}
+
 .gap-table tr:hover td.highlight {
-    background: #ff9999;
+    background: #ff9999 !important;
 }
 
 /* 响应式设计 */
