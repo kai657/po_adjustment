@@ -206,11 +206,9 @@ def optimize():
 
         report_path = os.path.join(app.config['RESULT_FOLDER'], f'report_{timestamp}.xlsx')
         comparison_path = os.path.join(app.config['RESULT_FOLDER'], f'comparison_{timestamp}.png')
-        deviation_path = os.path.join(app.config['RESULT_FOLDER'], f'deviation_{timestamp}.png')
 
         comparison, summary = visualizer.generate_summary_report(report_path)
         visualizer.create_comparison_plots(comparison_path)
-        visualizer.create_deviation_plot(deviation_path)
 
         # 生成差异分析表
         gap_analysis_path = os.path.join(app.config['RESULT_FOLDER'], f'gap_analysis_{timestamp}.xlsx')
@@ -246,7 +244,6 @@ def optimize():
                     'optimized_po': f'po_optimized_{timestamp}.xlsx',
                     'report': f'report_{timestamp}.xlsx',
                     'comparison_chart': f'comparison_{timestamp}.png',
-                    'deviation_chart': f'deviation_{timestamp}.png',
                     'gap_analysis': f'gap_analysis_{timestamp}.xlsx'
                 }
             }
