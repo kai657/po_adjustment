@@ -40,6 +40,11 @@ class POOptimizer:
         self.schedule_aim['日期'] = pd.to_datetime(self.schedule_aim['日期'])
         self.po_lists['修改要货日期'] = pd.to_datetime(self.po_lists['修改要货日期'])
 
+        # 为schedule_aim添加week_num列
+        self.schedule_aim['week_num'] = self.schedule_aim['日期'].apply(
+            lambda x: x.isocalendar()[0] * 100 + x.isocalendar()[1]
+        )
+
         # 日期约束
         self.min_date = datetime(2025, 10, 1)
         self.max_date = datetime(2026, 6, 1)
