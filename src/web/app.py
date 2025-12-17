@@ -19,6 +19,7 @@ sys.path.insert(0, PROJECT_ROOT)
 
 from src.core.po_adjustment import POOptimizer
 from src.core.visualization import POVisualizer
+from src.core.data_transformer import ScheduleTransformer
 
 # 使用根目录的templates和static
 app = Flask(__name__,
@@ -76,8 +77,60 @@ def upload_files():
         schedule_file.save(schedule_path)
         po_file.save(po_path)
 
-        # 读取并预览数据
-        schedule_df = pd.read_excel(schedule_path)
+        # 读取排程文件
+        schedule_df_raw = pd.read_excel(schedule_path)
+
+        # 检测排程文件格式并自动转换
+        transformer = ScheduleTransformer()
+        format_type = transformer.detect_format(schedule_df_raw)
+
+        conversion_info = {'format': format_type, 'converted': False}
+
+        if format_type == 'cross_table':
+            # 需要转换：二维交叉表 -> 长表
+            print(f"检测到交叉表格式，执行自动转换...")
+            schedule_df = transformer.transform_cross_table_to_long(schedule_df_raw)
+            schedule_df = transformer.add_week_number(schedule_df)
+
+            # 保存转换后的文件
+            schedule_df.to_excel(schedule_path, index=False)
+
+            conversion_info['converted'] = True
+            conversion_info['message'] = '已自动转换交叉表格式为长表格式'
+            print(f"转换完成：{schedule_df_raw.shape} -> {schedule_df.shape}")
+
+        elif format_type == 'long_format':
+            # 已是长表格式，无需转换
+            schedule_df = schedule_df_raw.copy()
+
+            # 标准化列名
+            columns_map = {}
+            for col in schedule_df.columns:
+                col_lower = str(col).lower()
+                if '日期' in col_lower or 'date' in col_lower:
+                    columns_map[col] = '日期'
+                elif 'sku' in col_lower:
+                    columns_map[col] = 'SKU'
+                elif '计划' in col_lower or '产量' in col_lower or 'quantity' in col_lower:
+                    columns_map[col] = '计划产量'
+
+            schedule_df = schedule_df.rename(columns=columns_map)
+
+            # 添加week_num（如果没有）
+            if 'week_num' not in schedule_df.columns and '日期' in schedule_df.columns:
+                schedule_df = transformer.add_week_number(schedule_df)
+                schedule_df.to_excel(schedule_path, index=False)
+
+            conversion_info['message'] = '文件已是长表格式'
+            print("文件已是长表格式，无需转换")
+
+        else:
+            return jsonify({
+                'success': False,
+                'error': '无法识别排程文件格式。请确保文件为交叉表或长表格式。'
+            }), 400
+
+        # 读取PO文件
         po_df = pd.read_excel(po_path)
 
         # 获取SKU列表
@@ -101,7 +154,8 @@ def upload_files():
                     'columns': po_df.columns.tolist(),
                     'skus': po_skus,
                     'preview': po_df.head(5).to_dict('records')
-                }
+                },
+                'conversion': conversion_info
             }
         })
 

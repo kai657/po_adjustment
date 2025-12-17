@@ -158,9 +158,19 @@ function uploadFiles() {
         uploadBtn.textContent = '上传并预览';
 
         if (data.success) {
-            showToast('✅ 文件上传成功！', 'success');
+            // 显示转换信息
+            if (data.data.conversion) {
+                if (data.data.conversion.converted) {
+                    showToast('✅ 文件上传成功！已自动转换交叉表格式', 'success');
+                } else {
+                    showToast('✅ 文件上传成功！', 'success');
+                }
+            } else {
+                showToast('✅ 文件上传成功！', 'success');
+            }
+
             displayFilePreview(data.data);
-            setTimeout(() => goToStep(2), 1000);
+            setTimeout(() => goToStep(2), 1500);
         } else {
             showToast(data.error || '上传失败', 'error');
             uploadBtn.disabled = false;
@@ -180,6 +190,21 @@ function displayFilePreview(data) {
     // 排程目标预览
     if (data.schedule_aim) {
         const preview = document.getElementById('schedule-preview');
+        let conversionBadge = '';
+
+        // 显示转换状态
+        if (data.conversion) {
+            if (data.conversion.converted) {
+                conversionBadge = `
+                    <div style="margin-top: 10px; padding: 8px; background: #dcfce7; border-left: 3px solid #10b981; border-radius: 4px;">
+                        <span style="color: #059669; font-size: 0.85em;">
+                            🔄 ${data.conversion.message}
+                        </span>
+                    </div>
+                `;
+            }
+        }
+
         preview.innerHTML = `
             <div class="slide-in-up" style="background: #f0f9ff; padding: 12px; border-radius: 6px; margin-top: 10px; text-align: left;">
                 <div style="font-weight: bold; color: #0369a1; margin-bottom: 8px;">📊 数据概览</div>
@@ -190,6 +215,7 @@ function displayFilePreview(data) {
                 <div style="font-size: 0.85em; color: #888; margin-top: 8px;">
                     列: ${data.schedule_aim.columns.join(', ')}
                 </div>
+                ${conversionBadge}
             </div>
         `;
     }
