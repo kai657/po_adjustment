@@ -107,10 +107,10 @@
                     <div class="param-group">
                         <label for="max-workers">
                             <span class="param-name">并行进程数</span>
-                            <span class="param-desc">同时处理的SKU数量（建议2-8，取决于CPU核心数）</span>
+                            <span class="param-desc">当前版本使用单进程模式以确保稳定性（未来版本将支持多进程）</span>
                         </label>
                         <div class="param-input">
-                            <input type="number" id="max-workers" value="4" min="1" max="16">
+                            <input type="number" id="max-workers" value="1" min="1" max="1" disabled readonly>
                             <span class="unit">个</span>
                         </div>
                     </div>
@@ -148,9 +148,9 @@
                                 <td>优先周权重:</td>
                                 <td><strong id="summary-weight">10</strong> 倍</td>
                             </tr>
-                            <tr>
+                            <tr style="display: none;">
                                 <td>并行进程数:</td>
-                                <td><strong id="summary-workers">4</strong> 个</td>
+                                <td><strong id="summary-workers">1</strong> 个</td>
                             </tr>
                         </table>
                     </div>
