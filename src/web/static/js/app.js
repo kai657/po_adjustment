@@ -514,8 +514,8 @@ function displayGapAnalysis(gapData) {
             <div class="value">${stats.sku_count}</div>
         </div>
         <div class="gap-stat-card">
-            <div class="label">日期数</div>
-            <div class="value">${stats.date_count}</div>
+            <div class="label">周数</div>
+            <div class="value">${stats.week_count}</div>
         </div>
         <div class="gap-stat-card">
             <div class="label">总差异</div>
@@ -537,10 +537,10 @@ function displayGapAnalysis(gapData) {
         </div>
     `;
 
-    // 生成差异表格
+    // 生成差异表格（按周维度）
     const tableDiv = document.getElementById('gap-table');
     const skus = gapData.skus;
-    const dates = gapData.dates;
+    const weeks = gapData.weeks;  // 周次标签（如 2025W50）
     const gapValues = gapData.gap_values;
     const scheduleValues = gapData.schedule_values;
     const poValues = gapData.po_values;
@@ -555,16 +555,16 @@ function displayGapAnalysis(gapData) {
     // 第一行：分类标题
     tableHTML += '<tr>';
     tableHTML += '<th rowspan="2" class="sku-header">SKU</th>';
-    tableHTML += `<th colspan="${dates.length}" class="section-header">GAP差异</th>`;
-    tableHTML += `<th colspan="${dates.length}" class="section-header">排程目标</th>`;
-    tableHTML += `<th colspan="${dates.length}" class="section-header">PO汇总结果</th>`;
+    tableHTML += `<th colspan="${weeks.length}" class="section-header">GAP差异</th>`;
+    tableHTML += `<th colspan="${weeks.length}" class="section-header">排程目标</th>`;
+    tableHTML += `<th colspan="${weeks.length}" class="section-header">PO汇总结果</th>`;
     tableHTML += '</tr>';
 
-    // 第二行：日期
+    // 第二行：周次
     tableHTML += '<tr>';
     for (let i = 0; i < 3; i++) {
-        for (const date of dates) {
-            tableHTML += `<th>${date}</th>`;
+        for (const week of weeks) {
+            tableHTML += `<th>${week}</th>`;
         }
     }
     tableHTML += '</tr>';
@@ -579,7 +579,7 @@ function displayGapAnalysis(gapData) {
         tableHTML += `<td class="sku-cell">${skus[i]}</td>`;
 
         // GAP差异列
-        for (let j = 0; j < dates.length; j++) {
+        for (let j = 0; j < weeks.length; j++) {
             const value = gapValues[i][j];
             let className = 'gap-column ' + (value > 0 ? 'positive' : (value < 0 ? 'negative' : 'zero'));
 
@@ -592,13 +592,13 @@ function displayGapAnalysis(gapData) {
         }
 
         // 排程目标列
-        for (let j = 0; j < dates.length; j++) {
+        for (let j = 0; j < weeks.length; j++) {
             const value = scheduleValues[i][j];
             tableHTML += `<td class="schedule-column">${value.toLocaleString()}</td>`;
         }
 
         // PO汇总结果列
-        for (let j = 0; j < dates.length; j++) {
+        for (let j = 0; j < weeks.length; j++) {
             const value = poValues[i][j];
             tableHTML += `<td class="po-column">${value.toLocaleString()}</td>`;
         }
