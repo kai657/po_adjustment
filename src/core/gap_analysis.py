@@ -28,6 +28,15 @@ class GapAnalyzer:
         self.po_original_df = pd.read_excel(po_original_file)
         self.po_optimized_df = pd.read_excel(po_optimized_file)
 
+        # 标准化PO清单列名（适配新格式）
+        column_mapping = {
+            'SKU/Spart': 'SKU',
+            '发运行数量': '数量',
+            '要求交付日期': '修改要货日期'
+        }
+        self.po_original_df = self.po_original_df.rename(columns=column_mapping)
+        self.po_optimized_df = self.po_optimized_df.rename(columns=column_mapping)
+
     def aggregate_po_by_date(self, po_df, date_column='修改要货日期'):
         """
         按日期汇总PO数量

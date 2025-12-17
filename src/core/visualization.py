@@ -35,6 +35,15 @@ class POVisualizer:
         self.original_po = pd.read_excel(original_po_file)
         self.optimized_po = pd.read_excel(optimized_po_file)
 
+        # 标准化PO清单列名（适配新格式）
+        column_mapping = {
+            'SKU/Spart': 'SKU',
+            '发运行数量': '数量',
+            '要求交付日期': '修改要货日期'
+        }
+        self.original_po = self.original_po.rename(columns=column_mapping)
+        self.optimized_po = self.optimized_po.rename(columns=column_mapping)
+
         # 确保日期格式
         self.schedule_aim['日期'] = pd.to_datetime(self.schedule_aim['日期'])
         self.original_po['修改要货日期'] = pd.to_datetime(self.original_po['修改要货日期'])

@@ -28,6 +28,14 @@ class POOptimizer:
         self.schedule_aim = pd.read_excel(schedule_aim_file)
         self.po_lists = pd.read_excel(po_lists_file)
 
+        # 标准化PO清单列名（适配新格式）
+        column_mapping = {
+            'SKU/Spart': 'SKU',
+            '发运行数量': '数量',
+            '要求交付日期': '修改要货日期'
+        }
+        self.po_lists = self.po_lists.rename(columns=column_mapping)
+
         # 确保日期格式正确
         self.schedule_aim['日期'] = pd.to_datetime(self.schedule_aim['日期'])
         self.po_lists['修改要货日期'] = pd.to_datetime(self.po_lists['修改要货日期'])
