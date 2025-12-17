@@ -289,6 +289,23 @@ function goToStep(step) {
         }
     });
 
+    // 步骤1特殊处理：检查是否已经上传过文件
+    if (step === 1) {
+        const uploadBtn = document.getElementById('btn-upload');
+        const nextBtn = document.getElementById('btn-next-step');
+        const schedulePreview = document.getElementById('schedule-preview');
+        const poPreview = document.getElementById('po-preview');
+
+        // 如果已经有预览数据（说明文件已上传），显示"下一步"按钮
+        if (schedulePreview.innerHTML && poPreview.innerHTML) {
+            uploadBtn.style.display = 'none';
+            nextBtn.style.display = 'inline-block';
+        } else {
+            uploadBtn.style.display = 'inline-block';
+            nextBtn.style.display = 'none';
+        }
+    }
+
     // 更新参数摘要
     if (step === 3) {
         updateParamSummary();
