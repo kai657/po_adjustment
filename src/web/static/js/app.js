@@ -240,7 +240,7 @@ function displayFilePreview(data) {
 
 // 参数初始化
 function initParams() {
-    const inputs = ['priority-weeks', 'priority-weight', 'date-weight', 'max-workers'];
+    const inputs = ['priority-weeks', 'priority-weight', 'max-workers'];
     inputs.forEach(id => {
         const input = document.getElementById(id);
         input.addEventListener('change', updateParamSummary);
@@ -253,8 +253,6 @@ function updateParamSummary() {
         document.getElementById('priority-weeks').value;
     document.getElementById('summary-weight').textContent =
         document.getElementById('priority-weight').value;
-    document.getElementById('summary-date-weight').textContent =
-        document.getElementById('date-weight').value;
     document.getElementById('summary-workers').textContent =
         document.getElementById('max-workers').value;
 }
@@ -319,7 +317,7 @@ function startOptimization() {
     const params = {
         priority_weeks: parseInt(document.getElementById('priority-weeks').value),
         priority_weight: parseFloat(document.getElementById('priority-weight').value),
-        date_weight: parseFloat(document.getElementById('date-weight').value),
+        date_weight: 0.0,  // 固定为0，不考虑日期接近度
         max_workers: parseInt(document.getElementById('max-workers').value)
     };
 
