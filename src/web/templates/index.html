@@ -40,23 +40,31 @@
                 <h2>📂 步骤1: 上传文件</h2>
 
                 <div class="upload-section">
-                    <div class="upload-box">
+                    <div class="upload-box" id="schedule-upload-box" data-type="schedule">
+                        <div class="upload-icon">📊</div>
                         <h3>排程目标文件</h3>
                         <p class="file-desc">包含每周SKU计划产量目标</p>
+                        <p class="file-desc" style="font-size: 0.85em; color: #999;">
+                            拖拽文件到此处或点击选择文件
+                        </p>
                         <input type="file" id="schedule-file" accept=".xlsx,.xls" style="display: none;">
                         <button class="btn btn-upload" onclick="document.getElementById('schedule-file').click()">
-                            选择文件
+                            📁 选择文件
                         </button>
                         <div class="file-info" id="schedule-info"></div>
                         <div class="file-preview" id="schedule-preview"></div>
                     </div>
 
-                    <div class="upload-box">
+                    <div class="upload-box" id="po-upload-box" data-type="po">
+                        <div class="upload-icon">📦</div>
                         <h3>PO清单文件</h3>
                         <p class="file-desc">需要调整的PO订单清单</p>
+                        <p class="file-desc" style="font-size: 0.85em; color: #999;">
+                            拖拽文件到此处或点击选择文件
+                        </p>
                         <input type="file" id="po-file" accept=".xlsx,.xls" style="display: none;">
                         <button class="btn btn-upload" onclick="document.getElementById('po-file').click()">
-                            选择文件
+                            📁 选择文件
                         </button>
                         <div class="file-info" id="po-info"></div>
                         <div class="file-preview" id="po-preview"></div>
