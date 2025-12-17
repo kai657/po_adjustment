@@ -190,7 +190,25 @@
                 <h2>📊 步骤4: 优化结果</h2>
 
                 <div class="results-panel" id="results-panel">
-                    <!-- 汇总统计 -->
+                    <!-- 第一部分：差异分析表 -->
+                    <div class="gap-analysis-section" id="gap-analysis-section" style="margin-bottom: 40px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h3>📋 SKU×日期差异分析（排程目标 - PO汇总）</h3>
+                            <button class="btn btn-download" onclick="downloadGapAnalysis()" style="margin: 0;">
+                                📥 导出差异分析表
+                            </button>
+                        </div>
+                        <div class="gap-stats" id="gap-stats"></div>
+                        <div class="gap-table-container" style="overflow-x: auto; max-height: 600px; overflow-y: auto;">
+                            <table id="gap-table" class="gap-table"></table>
+                        </div>
+                        <p style="font-size: 0.9em; color: #666; margin-top: 10px;">
+                            <span style="background: #FFC7CE; padding: 2px 8px; border-radius: 4px;">高亮部分</span>
+                            表示差异在 top 30% 的单元格
+                        </p>
+                    </div>
+
+                    <!-- 第二部分：汇总统计 -->
                     <div class="summary-stats" id="summary-stats"></div>
 
                     <!-- 图表展示 -->

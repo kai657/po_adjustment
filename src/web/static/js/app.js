@@ -382,9 +382,18 @@ function startOptimization() {
     });
 }
 
+// 全局变量保存gap分析文件名
+let currentGapAnalysisFile = '';
+
 // 显示结果
 function displayResults(data) {
-    // 显示汇总统计
+    // 1. 首先显示差异分析表
+    if (data.gap_analysis) {
+        displayGapAnalysis(data.gap_analysis);
+        currentGapAnalysisFile = data.files.gap_analysis;
+    }
+
+    // 2. 显示汇总统计
     const summaryDiv = document.getElementById('summary-stats');
     let summaryHTML = '<h3>📈 优化效果汇总</h3><div class="stat-grid">';
 
@@ -482,4 +491,133 @@ function showToast(message, type = 'info') {
     setTimeout(() => {
         toast.classList.remove('show');
     }, 3000);
+}
+
+// 显示差异分析表
+function displayGapAnalysis(gapData) {
+    // 显示统计信息
+    const statsDiv = document.getElementById('gap-stats');
+    const stats = gapData.stats;
+
+    statsDiv.innerHTML = `
+        <div class="gap-stat-card">
+            <div class="label">SKU总数</div>
+            <div class="value">${stats.sku_count}</div>
+        </div>
+        <div class="gap-stat-card">
+            <div class="label">日期数</div>
+            <div class="value">${stats.date_count}</div>
+        </div>
+        <div class="gap-stat-card">
+            <div class="label">总差异</div>
+            <div class="value" style="color: ${stats.total_gap >= 0 ? '#2f9e44' : '#c92a2a'}">
+                ${stats.total_gap.toLocaleString()}
+            </div>
+        </div>
+        <div class="gap-stat-card">
+            <div class="label">绝对差异</div>
+            <div class="value">${stats.abs_total_gap.toLocaleString()}</div>
+        </div>
+        <div class="gap-stat-card">
+            <div class="label">最大差异</div>
+            <div class="value" style="color: #c92a2a;">${stats.max_gap.toLocaleString()}</div>
+        </div>
+        <div class="gap-stat-card">
+            <div class="label">最小差异</div>
+            <div class="value" style="color: #2f9e44;">${stats.min_gap.toLocaleString()}</div>
+        </div>
+    `;
+
+    // 生成差异表格
+    const tableDiv = document.getElementById('gap-table');
+    const skus = gapData.skus;
+    const dates = gapData.dates;
+    const gapValues = gapData.gap_values;
+    const scheduleValues = gapData.schedule_values;
+    const poValues = gapData.po_values;
+
+    // 计算top30%阈值
+    const allGaps = gapValues.flat().map(Math.abs).filter(v => v > 0);
+    const threshold = calculatePercentile(allGaps, 70);
+
+    // 构建表格HTML
+    let tableHTML = '<thead>';
+
+    // 第一行：分类标题
+    tableHTML += '<tr>';
+    tableHTML += '<th rowspan="2" class="sku-header">SKU</th>';
+    tableHTML += `<th colspan="${dates.length}" class="section-header">GAP差异</th>`;
+    tableHTML += `<th colspan="${dates.length}" class="section-header">排程目标</th>`;
+    tableHTML += `<th colspan="${dates.length}" class="section-header">PO汇总结果</th>`;
+    tableHTML += '</tr>';
+
+    // 第二行：日期
+    tableHTML += '<tr>';
+    for (let i = 0; i < 3; i++) {
+        for (const date of dates) {
+            tableHTML += `<th>${date}</th>`;
+        }
+    }
+    tableHTML += '</tr>';
+    tableHTML += '</thead>';
+
+    // 数据行
+    tableHTML += '<tbody>';
+    for (let i = 0; i < skus.length; i++) {
+        tableHTML += '<tr>';
+
+        // SKU列
+        tableHTML += `<td class="sku-cell">${skus[i]}</td>`;
+
+        // GAP差异列
+        for (let j = 0; j < dates.length; j++) {
+            const value = gapValues[i][j];
+            let className = value > 0 ? 'positive' : (value < 0 ? 'negative' : 'zero');
+
+            // 高亮top30%
+            if (Math.abs(value) >= threshold && Math.abs(value) > 0) {
+                className += ' highlight';
+            }
+
+            tableHTML += `<td class="${className}">${value.toLocaleString()}</td>`;
+        }
+
+        // 排程目标列
+        for (let j = 0; j < dates.length; j++) {
+            const value = scheduleValues[i][j];
+            tableHTML += `<td>${value.toLocaleString()}</td>`;
+        }
+
+        // PO汇总结果列
+        for (let j = 0; j < dates.length; j++) {
+            const value = poValues[i][j];
+            tableHTML += `<td>${value.toLocaleString()}</td>`;
+        }
+
+        tableHTML += '</tr>';
+    }
+    tableHTML += '</tbody>';
+
+    tableDiv.innerHTML = tableHTML;
+}
+
+// 计算百分位数
+function calculatePercentile(arr, percentile) {
+    if (arr.length === 0) return 0;
+
+    const sorted = arr.slice().sort((a, b) => a - b);
+    const index = Math.ceil((percentile / 100) * sorted.length) - 1;
+
+    return sorted[index] || 0;
+}
+
+// 下载差异分析表
+function downloadGapAnalysis() {
+    if (!currentGapAnalysisFile) {
+        showToast('差异分析文件不存在', 'error');
+        return;
+    }
+
+    window.location.href = `/api/download/${currentGapAnalysisFile}`;
+    showToast('开始下载差异分析表...', 'success');
 }

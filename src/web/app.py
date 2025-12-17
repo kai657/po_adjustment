@@ -20,6 +20,7 @@ sys.path.insert(0, PROJECT_ROOT)
 from src.core.po_adjustment import POOptimizer
 from src.core.visualization import POVisualizer
 from src.core.data_transformer import ScheduleTransformer
+from src.core.gap_analysis import GapAnalyzer
 
 # 使用根目录的templates和static
 app = Flask(__name__,
@@ -211,6 +212,26 @@ def optimize():
         visualizer.create_comparison_plots(comparison_path)
         visualizer.create_deviation_plot(deviation_path)
 
+        # 生成差异分析表
+        gap_analysis_path = os.path.join(app.config['RESULT_FOLDER'], f'gap_analysis_{timestamp}.xlsx')
+        gap_analyzer = GapAnalyzer(schedule_path, po_path, result_path)
+        gap_analyzer.export_to_excel(gap_analysis_path, highlight_top_percent=30)
+
+        # 生成差异统计和表格数据
+        gap_stats = gap_analyzer.generate_summary_stats()
+        gap_data = gap_analyzer.create_gap_table()
+
+        # 转换gap数据为JSON格式
+        gap_json = {
+            'skus': gap_data['gap'].index.tolist(),
+            'dates': [d.strftime('%Y-%m-%d') if hasattr(d, 'strftime') else str(d)
+                     for d in gap_data['dates']],
+            'gap_values': gap_data['gap'].values.tolist(),
+            'schedule_values': gap_data['schedule'].values.tolist(),
+            'po_values': gap_data['po'].values.tolist(),
+            'stats': gap_stats
+        }
+
         # 准备返回数据
         summary_data = summary.to_dict('records')
 
@@ -220,11 +241,13 @@ def optimize():
             'data': {
                 'timestamp': timestamp,
                 'summary': summary_data,
+                'gap_analysis': gap_json,
                 'files': {
                     'optimized_po': f'po_optimized_{timestamp}.xlsx',
                     'report': f'report_{timestamp}.xlsx',
                     'comparison_chart': f'comparison_{timestamp}.png',
-                    'deviation_chart': f'deviation_{timestamp}.png'
+                    'deviation_chart': f'deviation_{timestamp}.png',
+                    'gap_analysis': f'gap_analysis_{timestamp}.xlsx'
                 }
             }
         })

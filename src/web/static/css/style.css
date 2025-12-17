@@ -811,6 +811,122 @@ h2 {
     animation: spin 0.6s linear infinite;
 }
 
+/* 差异分析表格样式 */
+.gap-analysis-section {
+    background: var(--bg-light);
+    border-radius: var(--radius-md);
+    padding: 25px;
+}
+
+.gap-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.gap-stat-card {
+    background: white;
+    padding: 15px;
+    border-radius: var(--radius-sm);
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+    border-left: 4px solid var(--primary-color);
+}
+
+.gap-stat-card .label {
+    font-size: 0.85em;
+    color: var(--text-secondary);
+    margin-bottom: 5px;
+}
+
+.gap-stat-card .value {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.gap-table-container {
+    background: white;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-md);
+}
+
+.gap-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9em;
+}
+
+.gap-table th {
+    background: var(--primary-color);
+    color: white;
+    padding: 12px 8px;
+    text-align: center;
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    white-space: nowrap;
+}
+
+.gap-table th.section-header {
+    background: #5568d3;
+    font-size: 0.95em;
+}
+
+.gap-table th.sku-header {
+    left: 0;
+    z-index: 11;
+    background: var(--primary-color);
+}
+
+.gap-table td {
+    padding: 10px 8px;
+    border: 1px solid var(--border-color);
+    text-align: right;
+}
+
+.gap-table td.sku-cell {
+    position: sticky;
+    left: 0;
+    background: white;
+    font-weight: 600;
+    text-align: left;
+    z-index: 5;
+    border-right: 2px solid var(--border-color);
+}
+
+.gap-table td.highlight {
+    background: #FFC7CE;
+    font-weight: bold;
+    color: #c92a2a;
+}
+
+.gap-table td.positive {
+    color: #2f9e44;
+}
+
+.gap-table td.negative {
+    color: #c92a2a;
+}
+
+.gap-table td.zero {
+    color: var(--text-secondary);
+}
+
+.gap-table tr:hover td {
+    background: #f8f9ff;
+}
+
+.gap-table tr:hover td.sku-cell {
+    background: #e7f5ff;
+}
+
+.gap-table tr:hover td.highlight {
+    background: #ff9999;
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
     .upload-section {
