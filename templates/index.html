@@ -104,17 +104,6 @@
                     </div>
 
                     <div class="param-group">
-                        <label for="date-weight">
-                            <span class="param-name">日期接近度权重</span>
-                            <span class="param-desc">调整后日期与原日期接近程度的权重（建议0.01-0.1）</span>
-                        </label>
-                        <div class="param-input">
-                            <input type="number" id="date-weight" value="0.01" min="0" max="1" step="0.01">
-                            <span class="unit"></span>
-                        </div>
-                    </div>
-
-                    <div class="param-group">
                         <label for="max-workers">
                             <span class="param-name">并行进程数</span>
                             <span class="param-desc">同时处理的SKU数量（建议2-8，取决于CPU核心数）</span>
@@ -157,10 +146,6 @@
                             <tr>
                                 <td>优先周权重:</td>
                                 <td><strong id="summary-weight">10</strong> 倍</td>
-                            </tr>
-                            <tr>
-                                <td>日期接近度权重:</td>
-                                <td><strong id="summary-date-weight">0.01</strong></td>
                             </tr>
                             <tr>
                                 <td>并行进程数:</td>

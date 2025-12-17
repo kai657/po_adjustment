@@ -172,7 +172,7 @@ def optimize():
         params = request.json
         priority_weeks = params.get('priority_weeks', 8)
         priority_weight = params.get('priority_weight', 10.0)
-        date_weight = params.get('date_weight', 0.01)
+        date_weight = 0.0  # 不考虑日期接近度目标
         max_workers = params.get('max_workers', 4)
 
         # 检查上传的文件是否存在
