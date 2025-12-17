@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PO清单分箱优化系统</title>
+    <title>PO优先级制定</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>🎯 PO清单分箱优化系统</h1>
+            <h1>🎯 PO优先级制定</h1>
             <p class="subtitle">基于排程目标智能调整要货日期，最小化每周数量偏差</p>
         </header>
 
@@ -40,23 +40,31 @@
                 <h2>📂 步骤1: 上传文件</h2>
 
                 <div class="upload-section">
-                    <div class="upload-box">
+                    <div class="upload-box" id="schedule-upload-box" data-type="schedule">
+                        <div class="upload-icon">📊</div>
                         <h3>排程目标文件</h3>
                         <p class="file-desc">包含每周SKU计划产量目标</p>
+                        <p class="file-desc" style="font-size: 0.85em; color: #999;">
+                            拖拽文件到此处或点击选择文件
+                        </p>
                         <input type="file" id="schedule-file" accept=".xlsx,.xls" style="display: none;">
                         <button class="btn btn-upload" onclick="document.getElementById('schedule-file').click()">
-                            选择文件
+                            📁 选择文件
                         </button>
                         <div class="file-info" id="schedule-info"></div>
                         <div class="file-preview" id="schedule-preview"></div>
                     </div>
 
-                    <div class="upload-box">
+                    <div class="upload-box" id="po-upload-box" data-type="po">
+                        <div class="upload-icon">📦</div>
                         <h3>PO清单文件</h3>
                         <p class="file-desc">需要调整的PO订单清单</p>
+                        <p class="file-desc" style="font-size: 0.85em; color: #999;">
+                            拖拽文件到此处或点击选择文件
+                        </p>
                         <input type="file" id="po-file" accept=".xlsx,.xls" style="display: none;">
                         <button class="btn btn-upload" onclick="document.getElementById('po-file').click()">
-                            选择文件
+                            📁 选择文件
                         </button>
                         <div class="file-info" id="po-info"></div>
                         <div class="file-preview" id="po-preview"></div>
@@ -182,18 +190,37 @@
                 <h2>📊 步骤4: 优化结果</h2>
 
                 <div class="results-panel" id="results-panel">
-                    <!-- 汇总统计 -->
+                    <!-- 第一部分：差异分析表 -->
+                    <div class="gap-analysis-section" id="gap-analysis-section" style="margin-bottom: 40px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h3>📋 SKU×日期差异分析（排程目标 - PO汇总）</h3>
+                            <button class="btn btn-download" onclick="downloadGapAnalysis()" style="margin: 0;">
+                                📥 导出差异分析表
+                            </button>
+                        </div>
+                        <div class="gap-stats" id="gap-stats"></div>
+                        <div class="gap-table-container" style="overflow-x: auto; max-height: 600px; overflow-y: auto;">
+                            <table id="gap-table" class="gap-table"></table>
+                        </div>
+                        <p style="font-size: 0.9em; color: #666; margin-top: 10px;">
+                            <span style="background: #FFC7CE; padding: 2px 8px; border-radius: 4px;">高亮部分</span>
+                            表示差异在 top 30% 的单元格
+                        </p>
+                    </div>
+
+                    <!-- 第二部分：汇总统计 -->
                     <div class="summary-stats" id="summary-stats"></div>
 
                     <!-- 图表展示 -->
                     <div class="charts-section">
-                        <div class="chart-box">
-                            <h3>每周数量对比图</h3>
-                            <img id="comparison-chart" src="" alt="加载中...">
-                        </div>
-                        <div class="chart-box">
-                            <h3>偏差改善对比图</h3>
-                            <img id="deviation-chart" src="" alt="加载中...">
+                        <div class="chart-box collapsible-chart">
+                            <div class="chart-header" onclick="toggleChart('comparison-chart-content')">
+                                <h3>📈 每周数量对比图</h3>
+                                <span class="toggle-icon" id="comparison-chart-icon">▶</span>
+                            </div>
+                            <div class="chart-content collapsed" id="comparison-chart-content">
+                                <img id="comparison-chart" src="" alt="加载中...">
+                            </div>
                         </div>
                     </div>
 
