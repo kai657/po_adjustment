@@ -168,6 +168,16 @@ class POOptimizer:
             print(f"警告: SKU {sku} 在排程目标中不存在，保持原日期")
             return po_df
 
+        # 获取该SKU排程目标的第一周日期（约束：调整后日期不能早于此日期）
+        first_schedule_date = sku_target['日期'].min()
+
+        # 过滤有效周一：只保留大于等于排程第一周的日期
+        valid_mondays_for_sku = [d for d in self.valid_mondays if d >= first_schedule_date]
+
+        if len(valid_mondays_for_sku) == 0:
+            print(f"警告: SKU {sku} 没有可用的日期（所有日期都早于排程第一周 {first_schedule_date}），保持原日期")
+            return po_df
+
         # 构建目标字典 {week_num: 目标数量}
         target_weekly = dict(zip(sku_target['week_num'], sku_target['计划产量']))
 
@@ -182,8 +192,8 @@ class POOptimizer:
             best_date = None
             best_score = float('inf')
 
-            # 尝试每个有效的周一日期
-            for monday in self.valid_mondays:
+            # 尝试每个有效的周一日期（已过滤，只包含>=排程第一周的日期）
+            for monday in valid_mondays_for_sku:
                 # 临时分配当前PO到这个日期
                 temp_assignments = best_assignments.copy()
 
