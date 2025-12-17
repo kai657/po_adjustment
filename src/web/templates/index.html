@@ -213,13 +213,14 @@
 
                     <!-- 图表展示 -->
                     <div class="charts-section">
-                        <div class="chart-box">
-                            <h3>每周数量对比图</h3>
-                            <img id="comparison-chart" src="" alt="加载中...">
-                        </div>
-                        <div class="chart-box">
-                            <h3>偏差改善对比图</h3>
-                            <img id="deviation-chart" src="" alt="加载中...">
+                        <div class="chart-box collapsible-chart">
+                            <div class="chart-header" onclick="toggleChart('comparison-chart-content')">
+                                <h3>📈 每周数量对比图</h3>
+                                <span class="toggle-icon" id="comparison-chart-icon">▶</span>
+                            </div>
+                            <div class="chart-content collapsed" id="comparison-chart-content">
+                                <img id="comparison-chart" src="" alt="加载中...">
+                            </div>
                         </div>
                     </div>
 

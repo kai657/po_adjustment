@@ -444,10 +444,7 @@ function displayResults(data) {
 
     // 显示图表
     const comparisonChart = document.getElementById('comparison-chart');
-    const deviationChart = document.getElementById('deviation-chart');
-
     comparisonChart.src = `/api/preview/${data.files.comparison_chart}`;
-    deviationChart.src = `/api/preview/${data.files.deviation_chart}`;
 
     // 显示下载按钮
     const downloadDiv = document.getElementById('download-buttons');
@@ -460,9 +457,6 @@ function displayResults(data) {
         </a>
         <a href="/api/download/${data.files.comparison_chart}" class="btn btn-download slide-in-up" style="animation-delay: 0.3s;" download>
             📈 数量对比图
-        </a>
-        <a href="/api/download/${data.files.deviation_chart}" class="btn btn-download slide-in-up" style="animation-delay: 0.4s;" download>
-            📉 偏差对比图
         </a>
     `;
 }
@@ -620,4 +614,22 @@ function downloadGapAnalysis() {
 
     window.location.href = `/api/download/${currentGapAnalysisFile}`;
     showToast('开始下载差异分析表...', 'success');
+}
+
+// 折叠/展开图表
+function toggleChart(contentId) {
+    const content = document.getElementById(contentId);
+    const icon = document.getElementById(contentId.replace('-content', '-icon'));
+
+    if (content.classList.contains('collapsed')) {
+        // 展开
+        content.classList.remove('collapsed');
+        icon.classList.add('expanded');
+        icon.textContent = '▼';
+    } else {
+        // 折叠
+        content.classList.add('collapsed');
+        icon.classList.remove('expanded');
+        icon.textContent = '▶';
+    }
 }

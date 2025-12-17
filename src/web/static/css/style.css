@@ -466,6 +466,62 @@ h2 {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
+/* 可折叠图表样式 */
+.collapsible-chart {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 0;
+    margin-bottom: 20px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 25px;
+    cursor: pointer;
+    background: #f8f9fa;
+    transition: background 0.3s ease;
+    user-select: none;
+}
+
+.chart-header:hover {
+    background: #e9ecef;
+}
+
+.chart-header h3 {
+    margin: 0;
+    color: #333;
+    font-size: 1.2em;
+}
+
+.toggle-icon {
+    font-size: 1.2em;
+    color: #667eea;
+    transition: transform 0.3s ease;
+    font-weight: bold;
+}
+
+.toggle-icon.expanded {
+    transform: rotate(90deg);
+}
+
+.chart-content {
+    padding: 0 25px 25px 25px;
+    max-height: 2000px;
+    opacity: 1;
+    overflow: hidden;
+    transition: max-height 0.4s ease, opacity 0.3s ease, padding 0.4s ease;
+}
+
+.chart-content.collapsed {
+    max-height: 0;
+    opacity: 0;
+    padding: 0 25px;
+}
+
 /* 下载区域 */
 .download-section {
     background: #e3f2fd;
