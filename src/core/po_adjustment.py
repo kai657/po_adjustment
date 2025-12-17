@@ -236,6 +236,24 @@ class POOptimizer:
         improved = True
         iteration = 0
 
+        # 调试：显示初始GAP前3名
+        actual_weekly_init = {}
+        for monday, qty in date_qty_map.items():
+            week_num = self.monday_to_week[monday]
+            actual_weekly_init[week_num] = actual_weekly_init.get(week_num, 0) + qty
+
+        all_weeks_init = sorted(set(list(target_weekly.keys()) + list(actual_weekly_init.keys())))
+        gaps_init = []
+        for i, week_num in enumerate(all_weeks_init):
+            target = target_weekly.get(week_num, 0)
+            actual = actual_weekly_init.get(week_num, 0)
+            gap = target - actual
+            weight = 10.0 if i < 8 else 1.0
+            gaps_init.append((week_num, gap, weight))
+
+        gaps_init.sort(key=lambda x: abs(x[1]) * x[2], reverse=True)
+        print(f"  初始GAP Top3: {[(f'{w//100}W{w%100:02d}', g, w*abs(g)) for w, g, w in gaps_init[:3]]}")
+
         while improved and iteration < max_iterations:
             improved = False
             iteration += 1
@@ -261,6 +279,9 @@ class POOptimizer:
 
             # 按加权GAP绝对值排序，找到最需要调整的周
             week_gaps.sort(key=lambda x: abs(x[1]) * x[2], reverse=True)
+
+            # 调试：显示当前迭代的Top GAP
+            print(f"  迭代{iteration}: Top GAP={week_gaps[0][0]//100}W{week_gaps[0][0]%100:02d} gap={week_gaps[0][1]} weight={week_gaps[0][2]}")
 
             # 尝试从过剩周移动PO到缺货周
             for deficit_week, deficit_gap, deficit_weight, deficit_idx in week_gaps:
@@ -291,6 +312,8 @@ class POOptimizer:
                         continue
 
                     # 尝试移动一个或多个PO
+                    current_deviation = self._calculate_weekly_deviation(date_qty_map, target_weekly)
+
                     for po_idx, po_qty in surplus_pos:
                         # 尝试移动这个PO
                         old_date = best_assignments[po_idx]
@@ -304,8 +327,11 @@ class POOptimizer:
 
                         new_deviation = self._calculate_weekly_deviation(new_date_qty_map, target_weekly)
 
-                        # 如果改进了，就接受这个移动
-                        if new_deviation < self._calculate_weekly_deviation(date_qty_map, target_weekly) - 0.1:  # 需要明显改进
+                        # 如果改进了，就接受这个移动（即使改进很小也接受）
+                        if new_deviation < current_deviation:
+                            improvement = current_deviation - new_deviation
+                            old_week_num = self.monday_to_week[old_date]
+                            print(f"    移动PO {po_idx}(数量{po_qty}): {old_week_num//100}W{old_week_num%100:02d} -> {deficit_week//100}W{deficit_week%100:02d}, 偏差改善{improvement:.2f}")
                             best_assignments[po_idx] = deficit_monday
                             date_qty_map = new_date_qty_map
                             improved = True
