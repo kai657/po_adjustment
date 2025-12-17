@@ -252,7 +252,7 @@ class POOptimizer:
             gaps_init.append((week_num, gap, weight))
 
         gaps_init.sort(key=lambda x: abs(x[1]) * x[2], reverse=True)
-        print(f"  初始GAP Top3: {[(f'{w//100}W{w%100:02d}', g, w*abs(g)) for w, g, w in gaps_init[:3]]}")
+        print(f"  初始GAP Top3: {[(f'{w//100}W{w%100:02d}', g, wt*abs(g)) for w, g, wt in gaps_init[:3]]}")
 
         while improved and iteration < max_iterations:
             improved = False
